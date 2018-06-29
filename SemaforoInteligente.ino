@@ -12,18 +12,19 @@
 //Pinos echo e trigger dos sensores ultrasssonicos
 #define trigger1    4
 #define echo1       5
-#define trigger2    6
-#define echo2       7
+
 
 //Leds do semáforo
 #define verde1      8
-#define vermelho1   9
-#define verde2      10
-#define vermelho2   11
+#define amarelo1    9
+#define vermelho1   10
+#define verde2      11
+#define amarelo2    12
+#define vermelho2   13
 
 //Inciando sensores ultrassonicos
 Ultrasonic ultrasonico1(trigger1, echo1);
-Ultrasonic ultrasonico2(trigger2, echo2);
+
 
 //Distânicia de offset
 #define offset 10
@@ -38,25 +39,63 @@ Ultrasonic ultrasonico2(trigger2, echo2);
 void setup() {
   //Configurando portas dos leds como saída
   pinMode(verde1, OUTPUT);
+  pinMode(amarelo1, OUTPUT);
   pinMode(vermelho1, OUTPUT);
   pinMode(verde2, OUTPUT);
+  pinMode(amarelo2, OUTPUT);
   pinMode(vermelho2, OUTPUT);
 
   //Iniciando um monitor serial para debugar os sensores
   Serial.begin(9600);
 }
 
+void pisca(int x, int vezes) {
+  int aux = 0;
+  while(aux < vezes) {
+    digitalWrite(x, LOW);
+    delay(1000);
+    digitalWrite(x, HIGH);
+    delay(1000);
+    aux = aux + 1;
+  }
+  digitalWrite(x, LOW);
+}
+
+void carro_vermelho() {
+  pisca(verde1, 3);
+  digitalWrite(amarelo1, HIGH);
+  delay(2000);
+  digitalWrite(amarelo1, LOW);
+  digitalWrite(vermelho1, HIGH);
+  delay(1000);
+  digitalWrite(vermelho2, LOW);
+  digitalWrite(verde2, HIGH);
+}
+
+void carro_verde() {
+  pisca(verde2, 3);
+  digitalWrite(amarelo2, HIGH);
+  delay(2000);
+  digitalWrite(amarelo2, LOW);
+  digitalWrite(vermelho2, HIGH);
+  delay(1000);
+  digitalWrite(verde1, HIGH);
+  digitalWrite(vermelho1, LOW);
+}
+
 void loop() {
   //Estado inicial dos leds
   digitalWrite(verde1, HIGH);
+  digitalWrite(amarelo1, LOW);
   digitalWrite(vermelho1, LOW);
   digitalWrite(verde2, LOW);
+  digitalWrite(amarelo2, LOW);
   digitalWrite(vermelho2, HIGH);
   
   //Le as informacoes do sensor, em cm
   float dist2;
-  long microsec = ultrasonico2.timing();
-  dist2 = ultrasonico2.convert(microsec, Ultrasonic::CM);
+  long microsec = ultrasonico1.timing();
+  dist2 = ultrasonico1.convert(microsec, Ultrasonic::CM);
   
    //Exibe informacoes no serial monitor
   Serial.print("Distancia em cm: ");
@@ -66,15 +105,9 @@ void loop() {
   //Leitura da distancia
   
   if(dist2 <= offset){
-     delay(delayMin);
-     digitalWrite(verde1, LOW);
-     delay(delayMed);
-     digitalWrite(vermelho1, HIGH);
-     delay(delayMax);
-     digitalWrite(verde2, HIGH);
-     digitalWrite(vermelho2, LOW);
-     delay(tempoPassagem);  
+    carro_vermelho();
+    delay(5000);
+    carro_verde();
+    delay(9000);
   }
-  
-
 }
